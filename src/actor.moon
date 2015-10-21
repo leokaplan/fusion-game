@@ -1,5 +1,4 @@
 entity  = require "entity"
-bullet = require "bullet"
 class actor extends entity
     walk_right: =>
         @dir = 1
@@ -13,7 +12,7 @@ class actor extends entity
         @x -= @walk_speed*@dir
     shoot: => 
         if not @cooldown then 
-            @spawn bullet @global, @, @dir,@bulletcolor
+            if @spawn_bullet then @\spawn_bullet!
             @cooldown = true
             @\oneshot 0.3, -> @cooldown = false
     jump: => 
@@ -24,7 +23,7 @@ class actor extends entity
         if not @onguard then 
             @c = {}
             @onguard = true
-            @\oneshot 0.5, -> @onguard = false
+            @\oneshot 0.8, -> @onguard = false
     checkcol: (o) => 
         left = o.x < @x + @w and @x + @w < o.x +o.w 
         right = o.x < @x and @x < o.x +o.w 
@@ -35,6 +34,8 @@ class actor extends entity
         left, right, up, down = @\checkcol o
         for k,v in pairs t do 
             if o.__class.__name == v then
+                if right and left and up and down then 
+                    print "erro na fisica"
                 if right or left then
                     if up and down or not (up or down)then
                         @\walk_back!

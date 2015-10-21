@@ -7,3 +7,4 @@ class entity
     oneshot: (n, f) => @global.oneshot @,n,f
     spawn: (o) => @global.spawn o
     hud: (f) => @global.hud @,f
+    bg: (f) => @global.bg @,f

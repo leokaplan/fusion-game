@@ -1,11 +1,14 @@
 actor  = require "actor"
-class enemy extends actor  
+bullet = require "bullet"
+class boss extends actor  
     die: =>
         @alive = false 
     
-    new: (global,x,y) =>
-        super global, x, y, 4, 8
+    new: (global,x,y,callback) =>
+        @callback = callback
+        super global, x, y, 8, 8
         @vy = 0
+        @life = 10
         @walk_speed = @global.Mcw
         @jump_power = 4*@global.Mch
         -- distance from feet to ground on the top of the jump parabole
@@ -24,12 +27,17 @@ class enemy extends actor
 
     canonx: => @x + @w/2
     canony: => @y + @h/2 
+    spawn_bullet: =>
+        @\spawn bullet @global, @, @dir,@bulletcolor
 
     draw: => 
+        @\hud ->
+            love.graphics.setColor 255, 255,0
+            love.graphics.rectangle "fill", @global.W-@life*@global.Mcw,0,@global.W-@life*@global.Mcw , 2*@global.Mch
         if not @onguard then
-            @c = {150,100,100}
+            @c = {150,150,250}
         else
-            @c = {200,100,200}
+            @c = {200,150,250}
         love.graphics.setColor @c
         love.graphics.rectangle "fill", @x, @y, @w, @h
         if @dir == 1 then
@@ -40,7 +48,10 @@ class enemy extends actor
 
 
     update: (dt) =>
+        if @life < 0 then
+            @alive = false
         if not @alive then
+            @callback!
             return true
         @y -= @vy*dt
         @vy -= @global.gravity*dt
@@ -56,9 +67,9 @@ class enemy extends actor
                 else
                     count += v[1]
     collide: (o) =>
-        @\block(o,{"wall","enemy"})
+        @\block(o,{"wall","enemy","player"})
         if o.__class.__name == "bullet" and o.parent.__class.__name == "player" then
-            @alive = false
-            return true
+            @life -= 1
+            o.alive = false
         --print @@.__name, o.__class.__name
-enemy
+boss

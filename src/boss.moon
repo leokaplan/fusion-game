@@ -28,7 +28,7 @@ class boss extends actor
     canonx: => @x + @w/2
     canony: => @y + @h/2 
     spawn_bullet: =>
-        @\spawn bullet @global, @, @dir,@bulletcolor
+        @\spawn bullet @global,@\canonx!,@\canony!, @, @dir,@bulletcolor
 
     draw: => 
         @\hud ->

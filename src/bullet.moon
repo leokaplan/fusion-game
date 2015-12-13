@@ -1,8 +1,8 @@
 actor  = require "actor"
 class bullet extends actor
-    new: (global,parent,direction=1,color) =>
+    new: (global,x,y,parent,direction=1,color) =>
         @parent = parent
-        super global, @parent\canonx!,@parent\canony!,1,1
+        super global, x,y,1,1
         @speed = 30*@global.Mcw*direction
         @c = color
         @alive = true

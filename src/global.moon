@@ -102,7 +102,7 @@ global.load = ->
         for i,o in pairs global.objs do
             for k,v in next,global.objs,i do
                 if o and v and o ~= v then
-                    if not global.kind(o,"phantom") and not global.kind(v,"phantom") then
+                    if not (global.kind(o,"phantom") or global.kind(v,"phantom")) then
                         if collision(o,v) then
                             ro = o\collide v            
                             rv = v\collide o

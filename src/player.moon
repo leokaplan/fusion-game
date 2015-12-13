@@ -7,7 +7,7 @@ class player extends actor
         super global, x, y, 2, 8
         @vy = 0
         @walk_speed = @global.Mcw
-        @jump_power = @h 
+        @jump_power = @h*2 
         -- distance from feet to ground on the top of the jump parabole
         @control = {
             a:  {hold:->@\walk_left!}
@@ -15,7 +15,7 @@ class player extends actor
             w:  {press:-> @\jump!}
             s:  {press:-> @\shoot!}
             f:  {press:-> @\guard!}
-            e:  {press:-> @life += 1}
+            e:  {press:-> if @life < @maxlife then @life += 1 }
             z:  {press:-> print @x,@y}
         }
         @\every 0.1, -> @\action!
@@ -26,6 +26,7 @@ class player extends actor
         @impulse = false
         @alive = true
         @life = 5
+        @maxlife = 7
         @key = {}
         @light = @global.lightWorld\newRectangle @x+@w/2, @y+@h/2,@w,@h
         
@@ -37,19 +38,22 @@ class player extends actor
     canonx: => @x + @w/2
     canony: => @y + @h/2 
     spawn_bullet: =>
-        @\spawn bullet @global, @, @dir,@bulletcolor
+        @\spawn bullet @global,@\canonx!,@\canony!, @, @dir,@bulletcolor
+        @\spawn bullet @global,@\canonx!,@\canony!+10, @, @dir,@bulletcolor
+        @\spawn bullet @global,@\canonx!,@\canony!-10, @, @dir,@bulletcolor
 
     draw: =>
         --@anim\draw @image, @x, @y,0,@w/@framew, @h/@frameh
         @\hud ->
             love.graphics.setColor 255, 0,0
             love.graphics.rectangle "fill", 0, 0,@life*@global.Mcw , 1*@global.Mch
-        if not @onguard then
-            @c = {100,100,100}
-        else
+        @c = {100,100,100}
+        if @onguard then
             @c = {100,200,200}
+        if @hit then
+            @c = {200, 100, 100}
         love.graphics.setColor @c
-        --love.graphics.rectangle "fill", @x, @y, @w, @h
+        love.graphics.rectangle "fill", @x, @y, @w, @h
         if @dir == 1 then
             love.graphics.rectangle "fill", @\canonx!, @\canony!, @w, @global.Mch
         else
@@ -61,16 +65,13 @@ class player extends actor
         --@anim\update dt
         if not @global.camera.locked then
             if @onguard then
-                cs = @global.camera\getScale()
-                @global.camera\setScale(cs +(1.8-cs)*dt*3)
-                cx,cy = @global.camera\getPosition()
-                @global.camera\setPosition(cx +(@x-cx)*dt*10,cy +(@y-cy)*dt*10)
+                @\cameraScale 1.8, 3, dt
+                @\cameraPosition @x,10, @y,10, dt
                 --@global.camera\setPosition(@x,@y)
             else
-                cs = @global.camera\getScale()
-                @global.camera\setScale(cs + (1.5-@life/10-cs)*dt*3)
-                cx,cy = @global.camera\getPosition()
-                @global.camera\setPosition(cx +(@x-cx)*dt,cy +(@y-cy)*dt)
+                @\cameraScale 1.5-@life/10, 3, dt
+                print @x,@y
+                @\cameraPosition @x,1, @y,1, dt
         @y -= @vy*dt
         @vy -= @global.gravity*dt
         @light\setPosition @x+@w/2,@y+@h/2
@@ -98,6 +99,8 @@ class player extends actor
                 if not @onguard then
                     
                     @life -= 1
+                    @hit = true
+                    @\oneshot 0.2, -> @hit = false
                     o.alive = false
         return false
     

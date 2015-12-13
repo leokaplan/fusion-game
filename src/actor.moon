@@ -33,7 +33,7 @@ class actor extends entity
     block: (o,t) =>
         left, right, up, down = @\checkcol o
         for k,v in pairs t do 
-            if o.__class.__name == v then
+            if @global.kind(o,v) then
                 if right and left and up and down then 
                     print "erro na fisica"
                 if right or left then

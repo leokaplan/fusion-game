@@ -1,10 +1,12 @@
-actor  = require "actor"
-bullet = require "bullet"
-class enemy extends actor  
-    die: =>
-        @global.lightWorld\remove @light 
-        @alive = false 
-    
+enemy = require "enemy"
+class plaperformer extends enemy  
+    changedir: =>
+        if not @onguard then
+            @dir *= -1
+            @\walk!
+    walk: => 
+        if @dir == 1 then @\walk_right!  
+        else @\walk_left!
     new: (global,x,y) =>
         super global, x, y, 4, 8
         @vy = 0
@@ -13,29 +15,25 @@ class enemy extends actor
         -- distance from feet to ground on the top of the jump parabole
         @dir = -1
         @control = {
-            {7,-> @\walk_left!}
-            {4,-> @\walk_right!}
-            {0,-> @\jump!}
-            {3,-> @\shoot!}
-            {0,-> @\guard!}
+            {10,-> @\walk!}
+            {1,-> @\guard!}
         }
         @controlsum = 0 
-        @life = 1
         for k,v in pairs @control do 
             @controlsum += v[1]
-        @\every 0.1, -> @\action!
-        @light = @global.lightWorld\newRectangle @x+@w/2, @y+@h/2,@w,@h
+        @\every 1, -> @\action!
+        @life = 3
 
     canonx: => @x + @w/2
     canony: => @y + @h/2 
     spawn_bullet: =>
-        @\spawn bullet @global, @\canonx!,@\canony!,@, @dir,@bulletcolor
+        @\spawn bullet @global, @, @dir,@bulletcolor
 
     draw: => 
         if not @onguard then
-            @c = {150,100,100}
+            @c = {50,50,10}
         else
-            @c = {200,100,200}
+            @c = {200,50,200}
         love.graphics.setColor @c
         love.graphics.rectangle "fill", @x, @y, @w, @h
         if @dir == 1 then
@@ -44,14 +42,6 @@ class enemy extends actor
             love.graphics.rectangle "fill", @\canonx!-@w, @\canony!, @w, @global.Mch
 
 
-
-    update: (dt) =>
-        if not @alive then
-            return true
-        @y -= @vy*dt
-        @vy -= @global.gravity*dt
-        @light\setPosition @x+@w/2,@y+@h/2
-        return false
     action: =>
         if not @onguard then
             
@@ -64,6 +54,10 @@ class enemy extends actor
                     count += v[1]
     collide: (o) =>
         @\block(o,{"wall","enemy"})
+        if @global.kind(o,"wall") then
+            left, right, up, down = @\checkcol o
+            if (left and not right) or (right and not left) then 
+                @\changedir!
         if @global.kind(o,"bullet") and @global.kind(o.parent,"player") then
             @life -= 1
             if @life == 0 then 
@@ -71,4 +65,4 @@ class enemy extends actor
                 return true
             return false
         --print @@.__name, o.__class.__name
-enemy
+plaperformer
